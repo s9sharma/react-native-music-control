@@ -1,3 +1,34 @@
+Skip to content
+Search or jump to…
+
+Pull requests
+Issues
+Marketplace
+Explore
+
+@s9sharma
+Learn Git and GitHub without any code!
+Using the Hello World guide, you’ll start a branch, write comments, and open a pull request.
+
+
+tanguyantoine
+/
+react-native-music-control
+16
+509185
+Code
+Issues 0
+Pull requests 0 Actions
+Projects 0
+Wiki
+Security 0
+Insights
+react-native-music-control/ios/MusicControlManager.m
+@johankasperi johankasperi addTarget:action: should return MPRemoteCommandHandlerStatus
+2875372 on 21 Aug 2019
+@tanguyantoine@SteffeyDev@deshiknaves@kesha-antonov@Guichaguri@DanNi0130@timmywil@hudashot@zdol@mzmiric5@Jeremaiha@johankasperi@ndillon1@pengcao1@cferg-entale
+436 lines (363 sloc)  17.8 KB
+
 #import "MusicControlManager.h"
 #import <React/RCTConvert.h>
 #import <React/RCTBridge.h>
@@ -22,22 +53,22 @@
 #define MEDIA_SPEED @"speed"
 #define MEDIA_STATE @"state"
 #define MEDIA_DICT @{@"album": MPMediaItemPropertyAlbumTitle, \
-    @"trackCount": MPMediaItemPropertyAlbumTrackCount, \
-    @"trackNumber": MPMediaItemPropertyAlbumTrackNumber, \
-    @"artist": MPMediaItemPropertyArtist, \
-    @"composer": MPMediaItemPropertyComposer, \
-    @"discCount": MPMediaItemPropertyDiscCount, \
-    @"discNumber": MPMediaItemPropertyDiscNumber, \
-    @"genre": MPMediaItemPropertyGenre, \
-    @"persistentID": MPMediaItemPropertyPersistentID, \
-    @"duration": MPMediaItemPropertyPlaybackDuration, \
-    @"title": MPMediaItemPropertyTitle, \
-    @"elapsedTime": MPNowPlayingInfoPropertyElapsedPlaybackTime, \
-    MEDIA_SPEED: MPNowPlayingInfoPropertyPlaybackRate, \
-    @"playbackQueueIndex": MPNowPlayingInfoPropertyPlaybackQueueIndex, \
-    @"playbackQueueCount": MPNowPlayingInfoPropertyPlaybackQueueCount, \
-    @"chapterNumber": MPNowPlayingInfoPropertyChapterNumber, \
-    @"chapterCount": MPNowPlayingInfoPropertyChapterCount \
+@"trackCount": MPMediaItemPropertyAlbumTrackCount, \
+@"trackNumber": MPMediaItemPropertyAlbumTrackNumber, \
+@"artist": MPMediaItemPropertyArtist, \
+@"composer": MPMediaItemPropertyComposer, \
+@"discCount": MPMediaItemPropertyDiscCount, \
+@"discNumber": MPMediaItemPropertyDiscNumber, \
+@"genre": MPMediaItemPropertyGenre, \
+@"persistentID": MPMediaItemPropertyPersistentID, \
+@"duration": MPMediaItemPropertyPlaybackDuration, \
+@"title": MPMediaItemPropertyTitle, \
+@"elapsedTime": MPNowPlayingInfoPropertyElapsedPlaybackTime, \
+MEDIA_SPEED: MPNowPlayingInfoPropertyPlaybackRate, \
+@"playbackQueueIndex": MPNowPlayingInfoPropertyPlaybackQueueIndex, \
+@"playbackQueueCount": MPNowPlayingInfoPropertyPlaybackQueueCount, \
+@"chapterNumber": MPNowPlayingInfoPropertyChapterNumber, \
+@"chapterCount": MPNowPlayingInfoPropertyChapterCount \
 }
 
 @implementation MusicControlManager
@@ -49,13 +80,13 @@ RCT_EXPORT_MODULE()
 - (NSDictionary *)constantsToExport
 {
     return @{
-        @"STATE_PLAYING": MEDIA_STATE_PLAYING,
-        @"STATE_PAUSED": MEDIA_STATE_PAUSED,
-        @"STATE_STOPPED" : MEDIA_STATE_STOPPED,
-        @"STATE_ERROR" :MEDIA_STATE_ERROR,
-        @"STATE_BUFFERING":MEDIA_STATE_BUFFERING,
-        @"STATE_RATING_PERCENTAGE":MEDIA_STATE_RATING_PERCENTAGE,
-    };
+             @"STATE_PLAYING": MEDIA_STATE_PLAYING,
+             @"STATE_PAUSED": MEDIA_STATE_PAUSED,
+             @"STATE_STOPPED" : MEDIA_STATE_STOPPED,
+             @"STATE_ERROR" :MEDIA_STATE_ERROR,
+             @"STATE_BUFFERING":MEDIA_STATE_BUFFERING,
+             @"STATE_RATING_PERCENTAGE":MEDIA_STATE_RATING_PERCENTAGE,
+             };
 }
 
 - (dispatch_queue_t)methodQueue
@@ -66,32 +97,32 @@ RCT_EXPORT_MODULE()
 RCT_EXPORT_METHOD(updatePlayback:(NSDictionary *) originalDetails)
 {
     MPNowPlayingInfoCenter *center = [MPNowPlayingInfoCenter defaultCenter];
-
+    
     if (center.nowPlayingInfo == nil) {
         return;
     }
-
+    
     NSMutableDictionary *details = [originalDetails mutableCopy];
     NSString *state = [details objectForKey:MEDIA_STATE];
-
+    
     // Set the playback rate from the state if no speed has been defined
     // If they provide the speed, then use it
     if (state != nil && [details objectForKey:MEDIA_SPEED] == nil) {
         NSNumber *speed = [state isEqual:MEDIA_STATE_PAUSED]
         ? [NSNumber numberWithDouble:0]
         : [NSNumber numberWithDouble:1];
-
+        
         [details setValue:speed forKey:MEDIA_SPEED];
     }
     if ([state isEqual:MEDIA_STATE_STOPPED]) {
         MPRemoteCommandCenter *remoteCenter = [MPRemoteCommandCenter sharedCommandCenter];
         [self toggleHandler:remoteCenter.stopCommand withSelector:@selector(onStop:) enabled:false];
     }
-
+    
     NSMutableDictionary *mediaDict = [[NSMutableDictionary alloc] initWithDictionary: center.nowPlayingInfo];
-
+    
     center.nowPlayingInfo = [self update:mediaDict with:details andSetDefaults:false];
-
+    
     // Playback state is separated in 11+
     if (@available(iOS 11.0, *)) {
         if ([state isEqual:MEDIA_STATE_PLAYING]) {
@@ -102,7 +133,7 @@ RCT_EXPORT_METHOD(updatePlayback:(NSDictionary *) originalDetails)
             center.playbackState = MPNowPlayingPlaybackStateStopped;
         }
     }
-
+    
     NSString *artworkUrl = [self getArtworkUrl:[originalDetails objectForKey:@"artwork"]];
     [self updateArtworkIfNeeded:artworkUrl];
 }
@@ -112,10 +143,10 @@ RCT_EXPORT_METHOD(setNowPlaying:(NSDictionary *) details)
 {
     MPNowPlayingInfoCenter *center = [MPNowPlayingInfoCenter defaultCenter];
     NSMutableDictionary *mediaDict = [NSMutableDictionary dictionary];
-
-
+    
+    
     center.nowPlayingInfo = [self update:mediaDict with:details andSetDefaults:true];
-
+    
     NSString *artworkUrl = [self getArtworkUrl:[details objectForKey:@"artwork"]];
     [self updateArtworkIfNeeded:artworkUrl];
 }
@@ -130,36 +161,36 @@ RCT_EXPORT_METHOD(resetNowPlaying)
 RCT_EXPORT_METHOD(enableControl:(NSString *) controlName enabled:(BOOL) enabled options:(NSDictionary *)options)
 {
     MPRemoteCommandCenter *remoteCenter = [MPRemoteCommandCenter sharedCommandCenter];
-
+    
     if ([controlName isEqual: @"pause"]) {
         [self toggleHandler:remoteCenter.pauseCommand withSelector:@selector(onPause:) enabled:enabled];
     } else if ([controlName isEqual: @"play"]) {
         [self toggleHandler:remoteCenter.playCommand withSelector:@selector(onPlay:) enabled:enabled];
-
+        
     } else if ([controlName isEqual: @"changePlaybackPosition"]) {
         [self toggleHandler:remoteCenter.changePlaybackPositionCommand withSelector:@selector(onChangePlaybackPosition:) enabled:enabled];
-
+        
     } else if ([controlName isEqual: @"stop"]) {
         [self toggleHandler:remoteCenter.stopCommand withSelector:@selector(onStop:) enabled:enabled];
-
+        
     } else if ([controlName isEqual: @"togglePlayPause"]) {
         [self toggleHandler:remoteCenter.togglePlayPauseCommand withSelector:@selector(onTogglePlayPause:) enabled:enabled];
-
+        
     } else if ([controlName isEqual: @"enableLanguageOption"]) {
         [self toggleHandler:remoteCenter.enableLanguageOptionCommand withSelector:@selector(onEnableLanguageOption:) enabled:enabled];
-
+        
     } else if ([controlName isEqual: @"disableLanguageOption"]) {
         [self toggleHandler:remoteCenter.disableLanguageOptionCommand withSelector:@selector(onDisableLanguageOption:) enabled:enabled];
-
+        
     } else if ([controlName isEqual: @"nextTrack"]) {
         [self toggleHandler:remoteCenter.nextTrackCommand withSelector:@selector(onNextTrack:) enabled:enabled];
-
+        
     } else if ([controlName isEqual: @"previousTrack"]) {
         [self toggleHandler:remoteCenter.previousTrackCommand withSelector:@selector(onPreviousTrack:) enabled:enabled];
-
+        
     } else if ([controlName isEqual: @"seekForward"]) {
         [self toggleHandler:remoteCenter.seekForwardCommand withSelector:@selector(onSeekForward:) enabled:enabled];
-
+        
     } else if ([controlName isEqual: @"seekBackward"]) {
         [self toggleHandler:remoteCenter.seekBackwardCommand withSelector:@selector(onSeekBackward:) enabled:enabled];
     } else if ([controlName isEqual:@"skipBackward"]) {
@@ -202,19 +233,19 @@ RCT_EXPORT_METHOD(observeAudioInterruptions:(BOOL) observe){
 #pragma mark internal
 
 - (NSDictionary *) update:(NSMutableDictionary *) mediaDict with:(NSDictionary *) details andSetDefaults:(BOOL) setDefault {
-
+    
     for (NSString *key in MEDIA_DICT) {
         if ([details objectForKey:key] != nil) {
             [mediaDict setValue:[details objectForKey:key] forKey:[MEDIA_DICT objectForKey:key]];
         }
-
+        
         // In iOS Simulator, always include the MPNowPlayingInfoPropertyPlaybackRate key in your nowPlayingInfo dictionary
         // only if we are creating a new dictionary
         if ([key isEqualToString:MEDIA_SPEED] && [details objectForKey:key] == nil && setDefault) {
             [mediaDict setValue:[NSNumber numberWithDouble:1] forKey:[MEDIA_DICT objectForKey:key]];
         }
     }
-
+    
     return mediaDict;
 }
 
@@ -264,19 +295,57 @@ RCT_EXPORT_METHOD(observeAudioInterruptions:(BOOL) observe){
     [[NSNotificationCenter defaultCenter] removeObserver:self name:AVAudioSessionRouteChangeNotification object:nil];
 }
 
-- (void)onPause:(MPRemoteCommandEvent*)event { [self sendEvent:@"pause"]; }
-- (void)onPlay:(MPRemoteCommandEvent*)event { [self sendEvent:@"play"]; }
-- (void)onChangePlaybackPosition:(MPChangePlaybackPositionCommandEvent*)event { [self sendEventWithValue:@"changePlaybackPosition" withValue:[NSString stringWithFormat:@"%.15f", event.positionTime]]; }
-- (void)onStop:(MPRemoteCommandEvent*)event { [self sendEvent:@"stop"]; }
-- (void)onTogglePlayPause:(MPRemoteCommandEvent*)event { [self sendEvent:@"togglePlayPause"]; }
-- (void)onEnableLanguageOption:(MPRemoteCommandEvent*)event { [self sendEvent:@"enableLanguageOption"]; }
-- (void)onDisableLanguageOption:(MPRemoteCommandEvent*)event { [self sendEvent:@"disableLanguageOption"]; }
-- (void)onNextTrack:(MPRemoteCommandEvent*)event { [self sendEvent:@"nextTrack"]; }
-- (void)onPreviousTrack:(MPRemoteCommandEvent*)event { [self sendEvent:@"previousTrack"]; }
-- (void)onSeekForward:(MPRemoteCommandEvent*)event { [self sendEvent:@"seekForward"]; }
-- (void)onSeekBackward:(MPRemoteCommandEvent*)event { [self sendEvent:@"seekBackward"]; }
-- (void)onSkipBackward:(MPRemoteCommandEvent*)event { [self sendEvent:@"skipBackward"]; }
-- (void)onSkipForward:(MPRemoteCommandEvent*)event { [self sendEvent:@"skipForward"]; }
+- (MPRemoteCommandHandlerStatus)onPause:(MPRemoteCommandEvent*)event {
+    [self sendEvent:@"pause"];
+    return MPRemoteCommandHandlerStatusSuccess;
+}
+- (MPRemoteCommandHandlerStatus)onPlay:(MPRemoteCommandEvent*)event {
+    [self sendEvent:@"play"];
+    return MPRemoteCommandHandlerStatusSuccess;
+}
+- (MPRemoteCommandHandlerStatus)onChangePlaybackPosition:(MPChangePlaybackPositionCommandEvent*)event { [self sendEventWithValue:@"changePlaybackPosition" withValue:[NSString stringWithFormat:@"%.15f", event.positionTime]];
+    return MPRemoteCommandHandlerStatusSuccess;
+}
+- (MPRemoteCommandHandlerStatus)onStop:(MPRemoteCommandEvent*)event {
+    [self sendEvent:@"stop"];
+    return MPRemoteCommandHandlerStatusSuccess;
+}
+- (MPRemoteCommandHandlerStatus)onTogglePlayPause:(MPRemoteCommandEvent*)event {
+    [self sendEvent:@"togglePlayPause"];
+    return MPRemoteCommandHandlerStatusSuccess;
+}
+- (MPRemoteCommandHandlerStatus)onEnableLanguageOption:(MPRemoteCommandEvent*)event {
+    [self sendEvent:@"enableLanguageOption"];
+    return MPRemoteCommandHandlerStatusSuccess;
+}
+- (MPRemoteCommandHandlerStatus)onDisableLanguageOption:(MPRemoteCommandEvent*)event {
+    [self sendEvent:@"disableLanguageOption"];
+    return MPRemoteCommandHandlerStatusSuccess;
+}
+- (MPRemoteCommandHandlerStatus)onNextTrack:(MPRemoteCommandEvent*)event {
+    [self sendEvent:@"nextTrack"];
+    return MPRemoteCommandHandlerStatusSuccess;
+}
+- (MPRemoteCommandHandlerStatus)onPreviousTrack:(MPRemoteCommandEvent*)event {
+    [self sendEvent:@"previousTrack"];
+    return MPRemoteCommandHandlerStatusSuccess;
+}
+- (MPRemoteCommandHandlerStatus)onSeekForward:(MPRemoteCommandEvent*)event {
+    [self sendEvent:@"seekForward"];
+    return MPRemoteCommandHandlerStatusSuccess;
+}
+- (MPRemoteCommandHandlerStatus)onSeekBackward:(MPRemoteCommandEvent*)event {
+    [self sendEvent:@"seekBackward"];
+    return MPRemoteCommandHandlerStatusSuccess;
+}
+- (MPRemoteCommandHandlerStatus)onSkipBackward:(MPRemoteCommandEvent*)event {
+    [self sendEvent:@"skipBackward"];
+    return MPRemoteCommandHandlerStatusSuccess;
+}
+- (MPRemoteCommandHandlerStatus)onSkipForward:(MPRemoteCommandEvent*)event {
+    [self sendEvent:@"skipForward"];
+    return MPRemoteCommandHandlerStatusSuccess;
+}
 
 - (NSArray<NSString *> *)supportedEvents {
     return @[@"RNMusicControlEvent"];
@@ -288,21 +357,21 @@ RCT_EXPORT_METHOD(observeAudioInterruptions:(BOOL) observe){
 }
 
 - (NSString*)getArtworkUrl:(NSString*)artwork {
-  NSString *artworkUrl = nil;
-
-  if (artwork) {
-      if ([artwork isKindOfClass:[NSString class]]) {
-           artworkUrl = artwork;
-      } else if ([[artwork valueForKey: @"uri"] isKindOfClass:[NSString class]]) {
-           artworkUrl = [artwork valueForKey: @"uri"];
-      }
-  }
-
-  return artworkUrl;
+    NSString *artworkUrl = nil;
+    
+    if (artwork) {
+        if ([artwork isKindOfClass:[NSString class]]) {
+            artworkUrl = artwork;
+        } else if ([[artwork valueForKey: @"uri"] isKindOfClass:[NSString class]]) {
+            artworkUrl = [artwork valueForKey: @"uri"];
+        }
+    }
+    
+    return artworkUrl;
 }
 
 - (void)sendEventWithValue:(NSString*)event withValue:(NSString*)value{
-   [self sendEventWithName:@"RNMusicControlEvent" body:@{@"name": event, @"value":value}];
+    [self sendEventWithName:@"RNMusicControlEvent" body:@{@"name": event, @"value":value}];
 }
 
 - (void)updateArtworkIfNeeded:(id)artworkUrl
@@ -310,23 +379,23 @@ RCT_EXPORT_METHOD(observeAudioInterruptions:(BOOL) observe){
     if( artworkUrl == nil ) {
         return;
     }
-
+    
     MPNowPlayingInfoCenter *center = [MPNowPlayingInfoCenter defaultCenter];
     if ([artworkUrl isEqualToString:self.artworkUrl] && [center.nowPlayingInfo objectForKey:MPMediaItemPropertyArtwork] != nil) {
         return;
     }
-
+    
     self.artworkUrl = artworkUrl;
-
+    
     // Custom handling of artwork in another thread, will be loaded async
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
         UIImage *image = nil;
-
+        
         // check whether artwork path is present
         if ([artworkUrl isEqual: @""]) {
             return;
         }
-
+        
         // artwork is url download from the interwebs
         if ([artworkUrl hasPrefix: @"http://"] || [artworkUrl hasPrefix: @"https://"]) {
             NSURL *imageURL = [NSURL URLWithString:artworkUrl];
@@ -339,27 +408,27 @@ RCT_EXPORT_METHOD(observeAudioInterruptions:(BOOL) observe){
                 image = [UIImage imageNamed:localArtworkUrl];
             }
         }
-
+        
         // Check if image was available otherwise don't do anything
         if (image == nil) {
             return;
         }
-
+        
         // check whether image is loaded
         CGImageRef cgref = [image CGImage];
         CIImage *cim = [image CIImage];
-
+        
         if (cim == nil && cgref == NULL) {
             return;
         }
-
+        
         dispatch_async(dispatch_get_main_queue(), ^{
-
+            
             // Check if URL wasn't changed in the meantime
             if (![artworkUrl isEqual:self.artworkUrl]) {
                 return;
             }
-
+            
             MPNowPlayingInfoCenter *center = [MPNowPlayingInfoCenter defaultCenter];
             MPMediaItemArtwork *artwork = [[MPMediaItemArtwork alloc] initWithImage: image];
             NSMutableDictionary *mediaDict = (center.nowPlayingInfo != nil) ? [[NSMutableDictionary alloc] initWithDictionary: center.nowPlayingInfo] : [NSMutableDictionary dictionary];
@@ -384,15 +453,27 @@ RCT_EXPORT_METHOD(observeAudioInterruptions:(BOOL) observe){
     NSInteger interruptionType = [notification.userInfo[AVAudioSessionInterruptionTypeKey] integerValue];
     NSInteger interruptionOption = [notification.userInfo[AVAudioSessionInterruptionOptionKey] integerValue];
     bool delayedSuspendedNotification = (@available(iOS 10.0, *)) && [notification.userInfo[AVAudioSessionInterruptionWasSuspendedKey] boolValue];
-
+    
     if (interruptionType == AVAudioSessionInterruptionTypeBegan && !delayedSuspendedNotification) {
         // Playback interrupted by an incoming phone call.
         [self sendEvent:@"pause"];
     }
     if (interruptionType == AVAudioSessionInterruptionTypeEnded &&
-           interruptionOption == AVAudioSessionInterruptionOptionShouldResume) {
+        interruptionOption == AVAudioSessionInterruptionOptionShouldResume) {
         [self sendEvent:@"play"];
     }
 }
 
 @end
+© 2020 GitHub, Inc.
+Terms
+Privacy
+Security
+Status
+Help
+Contact GitHub
+Pricing
+API
+Training
+Blog
+About
