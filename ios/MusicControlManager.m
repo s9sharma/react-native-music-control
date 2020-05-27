@@ -1,34 +1,3 @@
-Skip to content
-Search or jump to…
-
-Pull requests
-Issues
-Marketplace
-Explore
-
-@s9sharma
-Learn Git and GitHub without any code!
-Using the Hello World guide, you’ll start a branch, write comments, and open a pull request.
-
-
-tanguyantoine
-/
-react-native-music-control
-16
-509185
-Code
-Issues 0
-Pull requests 0 Actions
-Projects 0
-Wiki
-Security 0
-Insights
-react-native-music-control/ios/MusicControlManager.m
-@johankasperi johankasperi addTarget:action: should return MPRemoteCommandHandlerStatus
-2875372 on 21 Aug 2019
-@tanguyantoine@SteffeyDev@deshiknaves@kesha-antonov@Guichaguri@DanNi0130@timmywil@hudashot@zdol@mzmiric5@Jeremaiha@johankasperi@ndillon1@pengcao1@cferg-entale
-436 lines (363 sloc)  17.8 KB
-
 #import "MusicControlManager.h"
 #import <React/RCTConvert.h>
 #import <React/RCTBridge.h>
@@ -465,15 +434,3 @@ RCT_EXPORT_METHOD(observeAudioInterruptions:(BOOL) observe){
 }
 
 @end
-© 2020 GitHub, Inc.
-Terms
-Privacy
-Security
-Status
-Help
-Contact GitHub
-Pricing
-API
-Training
-Blog
-About
